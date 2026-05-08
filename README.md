@@ -1,7 +1,7 @@
 # Cyber Projects — SOC Analyst Portfolio
 
 **Elijah Marcisz** | Indiana University Bloomington  
-Cybersecurity & Networking | [LinkedIn](https://www.linkedin.com/in/elijah-marcisz-792069251/) | [TryHackMe](your-tryhackme-url)
+Cybersecurity & Networking | [LinkedIn](https://www.linkedin.com/in/elijah-marcisz-792069251/) 
 
 ---
 
