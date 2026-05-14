@@ -7,22 +7,23 @@ Cybersecurity & Networking | [LinkedIn](https://www.linkedin.com/in/elijah-marci
 
 ## Overview
 
-This repository contains hands-on cybersecurity projects built to demonstrate 
-Tier 1 SOC analyst competencies — threat detection, alert triage, incident 
-documentation, and threat intelligence analysis.
+This repository contains hands-on cybersecurity projects built to 
+demonstrate core SOC analyst competencies — threat detection, alert 
+triage, incident response documentation, and GRC fundamentals.
 
-Each project targets skills directly relevant to SIEM-based detection and 
-response roles in MSSP environments.
+Each project simulates real-world security operations workflows using 
+industry-standard tools, frameworks, and methodologies including 
+MITRE ATT&CK, NIST CSF, and CIS Controls.
 
 ---
 
 ## Projects
 
-| Project | Tools | Status |
-|---|---|---|
-| [Live Threat Detection Lab](./threat-detection-lab/) | Splunk 10, Sysmon, Atomic Red Team | 🟡 In Progress |
-| [MITRE ATT&CK Threat Mapping](./mitre-report/) | ATT&CK Navigator | ⬜ Upcoming |
-| [TryHackMe SOC Level 1](./tryhackme/) | TryHackMe, Splunk | ⬜ Upcoming |
+| Project | Tools | Frameworks | Status |
+|---|---|---|---|
+| [Wazuh Threat Detection Lab](./wazuh_lab/) | Wazuh, Sysmon, Atomic Red Team, Docker | MITRE ATT&CK, NIST CSF, CIS Controls v8 | 🟡 In Progress |
+| [MITRE ATT&CK Threat Mapping](./mitre-report/) | ATT&CK Navigator | MITRE ATT&CK v14 | ⬜ Upcoming |
+| [TryHackMe SOC Level 1](./tryhackme/) | TryHackMe, Splunk | SOC Operations | ⬜ Upcoming |
 
 ---
 
@@ -36,4 +37,14 @@ response roles in MSSP environments.
 ## Certifications In Progress
 - [ ] CompTIA Security+
 - [ ] CompTIA CySA+
-- [ ] TryHackMe SOC Level 1
+- [ ] SOC Analyst Learning Path
+
+## Methodology 
+Projects follow a structured consulting-style approach:
+- Threat simulation using Atomic Red Team mapped to MITRE ATT&CK
+- Detection validation using SIEM platforms (Wazuh, Sentinel)
+- Findings documented in security assessment reports, runbooks, and control assessment matrices aligned to NIST CSF and CIS Controls
+
+## Academic Background
+Indiana University Bloomington - B.S. Cybersecurity and Global Policy
+Expected Graduation: 2026
