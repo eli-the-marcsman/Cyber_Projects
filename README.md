@@ -29,7 +29,7 @@ MITRE ATT&CK, NIST CSF, and CIS Controls.
 
 ## Tools & Technologies
 
-`Splunk Enterprise` `Sysmon` `Atomic Red Team` `MITRE ATT&CK` 
+`Wazuh` `Sysmon` `Atomic Red Team` `MITRE ATT&CK` 
 `Windows Event Logs` `PowerShell` `SPL` `Ubuntu WSL` `Git`
 
 ---
@@ -47,4 +47,4 @@ Projects follow a structured consulting-style approach:
 
 ## Academic Background
 Indiana University Bloomington - B.S. Cybersecurity and Global Policy
-Expected Graduation: 2026
+Expected Graduation: June 2026
