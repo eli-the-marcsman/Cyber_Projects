@@ -21,7 +21,7 @@ MITRE ATT&CK, NIST CSF, and CIS Controls.
 
 | Project | Tools | Frameworks | Status |
 |---|---|---|---|
-| [Wazuh Threat Detection Lab](./wazuh_lab/) | Wazuh, Sysmon, Atomic Red Team, Docker | MITRE ATT&CK, NIST CSF, CIS Controls v8 | 🟡 In Progress |
+| [Wazuh Threat Detection Lab](./wazuh_lab/) | Wazuh, Sysmon, Atomic Red Team, Docker | MITRE ATT&CK, NIST CSF, CIS Controls v8 | Complete |
 | [MITRE ATT&CK Threat Mapping](./mitre-report/) | ATT&CK Navigator | MITRE ATT&CK v14 | ⬜ Upcoming |
 | [TryHackMe SOC Level 1](./tryhackme/) | TryHackMe, Splunk | SOC Operations | ⬜ Upcoming |
 
