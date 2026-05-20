@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — HelpDesk{% endblock %}
+
+{% block content %}
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #f1f5f9;
+        line-height: 1;
+    }
+
+    .stat-sub {
+        font-size: 0.8rem;
+        color: #64748b;
+    }
+
+    .stat-card.blue  { border-left: 3px solid #0ea5e9; }
+    .stat-card.green { border-left: 3px solid #16a34a; }
+    .stat-card.amber { border-left: 3px solid #f59e0b; }
+    .stat-card.red   { border-left: 3px solid #dc2626; }
+    .stat-card.purple{ border-left: 3px solid #a78bfa; }
+
+    .section-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 1rem;
+    }
+
+    .breakdown-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .breakdown-card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
+    .breakdown-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #1e293b;
+    }
+
+    .breakdown-row:last-child { border-bottom: none; }
+
+    .breakdown-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.875rem;
+        color: #cbd5e1;
+    }
+
+    .breakdown-count {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #f1f5f9;
+    }
+
+    .bar-track {
+        width: 100%;
+        height: 6px;
+        background: #0f172a;
+        border-radius: 99px;
+        margin-top: 6px;
+        overflow: hidden;
+    }
+
+    .bar-fill {
+        height: 100%;
+        border-radius: 99px;
+        transition: width 0.6s ease;
+    }
+
+    .quick-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+</style>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">System overview and ticket statistics</p>
+    </div>
+    <a href="/tickets/new" class="btn btn-primary">+ New Ticket</a>
+</div>
+
+<!-- Top stat cards -->
+{% set open_count      = namespace(val=0) %}
+{% set progress_count  = namespace(val=0) %}
+{% set resolved_count  = namespace(val=0) %}
+{% set closed_count    = namespace(val=0) %}
+{% set total           = namespace(val=0) %}
+
+{% for row in by_status %}
+    {% set total.val = total.val + row.count %}
+    {% if row.status == 'open' %}{% set open_count.val = row.count %}{% endif %}
+    {% if row.status == 'in_progress' %}{% set progress_count.val = row.count %}{% endif %}
+    {% if row.status == 'resolved' %}{% set resolved_count.val = row.count %}{% endif %}
+    {% if row.status == 'closed' %}{% set closed_count.val = row.count %}{% endif %}
+{% endfor %}
+
+<div class="stats-grid">
+    <div class="stat-card blue">
+        <span class="stat-label">Open</span>
+        <span class="stat-value">{{ open_count.val }}</span>
+        <span class="stat-sub">Awaiting action</span>
+    </div>
+    <div class="stat-card amber">
+        <span class="stat-label">In Progress</span>
+        <span class="stat-value">{{ progress_count.val }}</span>
+        <span class="stat-sub">Being worked on</span>
+    </div>
+    <div class="stat-card green">
+        <span class="stat-label">Resolved</span>
+        <span class="stat-value">{{ resolved_count.val }}</span>
+        <span class="stat-sub">Completed</span>
+    </div>
+    <div class="stat-card purple">
+        <span class="stat-label">Total Tickets</span>
+        <span class="stat-value">{{ total.val }}</span>
+        <span class="stat-sub">All time</span>
+    </div>
+    <div class="stat-card {% if avg_mins %}green{% else %}blue{% endif %}">
+        <span class="stat-label">Avg Resolution</span>
+        <span class="stat-value">
+            {% if avg_mins %}
+                {{ (avg_mins / 60) | round(1) }}h
+            {% else %}
+                —
+            {% endif %}
+        </span>
+        <span class="stat-sub">Average time to resolve</span>
+    </div>
+</div>
+
+<!-- Breakdowns -->
+<div class="breakdown-grid">
+
+    <!-- By Category -->
+    <div class="breakdown-card">
+        <p class="section-title">By Category</p>
+        {% set cat_colors = {
+            'hardware': '#a78bfa',
+            'software': '#38bdf8',
+            'network':  '#4ade80',
+            'security_incident': '#f87171'
+        } %}
+        {% for row in by_category %}
+        <div class="breakdown-row">
+            <span class="breakdown-label">
+                <span style="width:10px;height:10px;border-radius:50%;background:{{ cat_colors.get(row.category, '#64748b') }};display:inline-block"></span>
+                {{ row.category | replace('_', ' ') | title }}
+            </span>
+            <span class="breakdown-count">{{ row.count }}</span>
+        </div>
+        {% if total.val > 0 %}
+        <div class="bar-track">
+            <div class="bar-fill" style="width:{{ ((row.count / total.val) * 100) | round }}%;background:{{ cat_colors.get(row.category, '#64748b') }}"></div>
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% if not by_category %}
+        <p style="color:#64748b;font-size:0.85rem">No tickets yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- By Priority -->
+    <div class="breakdown-card">
+        <p class="section-title">By Priority</p>
+        {% set pri_colors = {
+            'low': '#4ade80',
+            'medium': '#60a5fa',
+            'high': '#fb923c',
+            'critical': '#f87171'
+        } %}
+        {% for row in by_priority %}
+        <div class="breakdown-row">
+            <span class="breakdown-label">
+                <span style="width:10px;height:10px;border-radius:50%;background:{{ pri_colors.get(row.priority, '#64748b') }};display:inline-block"></span>
+                {{ row.priority | title }}
+            </span>
+            <span class="breakdown-count">{{ row.count }}</span>
+        </div>
+        {% if total.val > 0 %}
+        <div class="bar-track">
+            <div class="bar-fill" style="width:{{ ((row.count / total.val) * 100) | round }}%;background:{{ pri_colors.get(row.priority, '#64748b') }}"></div>
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% if not by_priority %}
+        <p style="color:#64748b;font-size:0.85rem">No tickets yet.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- Quick actions -->
+<p class="section-title">Quick Actions</p>
+<div class="quick-actions">
+    <a href="/tickets" class="btn btn-ghost">View All Tickets</a>
+    <a href="/tickets?status=open" class="btn btn-ghost">Open Tickets</a>
+    <a href="/tickets?priority=critical" class="btn btn-danger">Critical Tickets</a>
+    <a href="/tickets?category=security_incident" class="btn btn-ghost">Security Incidents</a>
+    <a href="/tickets/new" class="btn btn-primary">+ New Ticket</a>
+</div>
+
+{% endblock %}

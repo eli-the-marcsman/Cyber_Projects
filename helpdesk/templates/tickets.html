@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% block title %}Tickets — HelpDesk{% endblock %}
+
+{% block content %}
+<style>
+    .filters {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 1.2rem 1.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: flex-end;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 160px;
+    }
+
+    .filter-group label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+    }
+
+    .filter-group select {
+        background: #0f172a;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        padding: 8px 12px;
+        color: #e2e8f0;
+        font-size: 0.875rem;
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 8px;
+        align-items: flex-end;
+    }
+
+    .ticket-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .ticket-table th {
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        padding: 10px 16px;
+        border-bottom: 1px solid #334155;
+        background: #1e293b;
+    }
+
+    .ticket-table th:first-child { border-radius: 8px 0 0 0; }
+    .ticket-table th:last-child  { border-radius: 0 8px 0 0; }
+
+    .ticket-table td {
+        padding: 14px 16px;
+        border-bottom: 1px solid #1e293b;
+        font-size: 0.875rem;
+        color: #cbd5e1;
+        background: #162032;
+    }
+
+    .ticket-table tr:hover td { background: #1e293b; cursor: pointer; }
+    .ticket-table tr:last-child td { border-bottom: none; }
+
+    .ticket-title {
+        color: #f1f5f9;
+        font-weight: 500;
+        max-width: 300px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .ticket-id {
+        color: #475569;
+        font-family: monospace;
+        font-size: 0.8rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #475569;
+    }
+
+    .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+    .empty-state h3 { font-size: 1.1rem; color: #64748b; margin-bottom: 8px; }
+    .empty-state p  { font-size: 0.875rem; }
+
+    .table-wrapper {
+        background: #162032;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .escalated-flag {
+        display: inline-block;
+        background: #3d0909;
+        color: #f87171;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 1px 6px;
+        border-radius: 4px;
+        margin-left: 6px;
+        text-transform: uppercase;
+    }
+</style>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Tickets</h1>
+        <p class="page-subtitle">
+            {% if tickets %}{{ tickets | length }} ticket{{ 's' if tickets | length != 1 }}{% else %}No tickets{% endif %}
+            {% if status or priority or category %} matching filters{% endif %}
+        </p>
+    </div>
+    <a href="/tickets/new" class="btn btn-primary">+ New Ticket</a>
+</div>
+
+<!-- Filters -->
+<form method="GET" action="/tickets">
+    <div class="filters">
+        <div class="filter-group">
+            <label>Status</label>
+            <select name="status">
+                <option value="">All Statuses</option>
+                <option value="open"        {% if status == 'open' %}selected{% endif %}>Open</option>
+                <option value="in_progress" {% if status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                <option value="resolved"    {% if status == 'resolved' %}selected{% endif %}>Resolved</option>
+                <option value="closed"      {% if status == 'closed' %}selected{% endif %}>Closed</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label>Priority</label>
+            <select name="priority">
+                <option value="">All Priorities</option>
+                <option value="low"      {% if priority == 'low' %}selected{% endif %}>Low</option>
+                <option value="medium"   {% if priority == 'medium' %}selected{% endif %}>Medium</option>
+                <option value="high"     {% if priority == 'high' %}selected{% endif %}>High</option>
+                <option value="critical" {% if priority == 'critical' %}selected{% endif %}>Critical</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label>Category</label>
+            <select name="category">
+                <option value="">All Categories</option>
+                <option value="hardware"          {% if category == 'hardware' %}selected{% endif %}>Hardware</option>
+                <option value="software"          {% if category == 'software' %}selected{% endif %}>Software</option>
+                <option value="network"           {% if category == 'network' %}selected{% endif %}>Network</option>
+                <option value="security_incident" {% if category == 'security_incident' %}selected{% endif %}>Security Incident</option>
+            </select>
+        </div>
+
+        <div class="filter-actions">
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="/tickets" class="btn btn-ghost">Clear</a>
+        </div>
+    </div>
+</form>
+
+<!-- Ticket table -->
+{% if tickets %}
+<div class="table-wrapper">
+    <table class="ticket-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Category</th>
+                <th>Requester</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in tickets %}
+            <tr onclick="window.location='/tickets/{{ t.id }}'">
+                <td class="ticket-id">#{{ t.id }}</td>
+                <td>
+                    <span class="ticket-title">{{ t.title }}</span>
+                    {% if t.escalated %}
+                        <span class="escalated-flag">⚠ Escalated</span>
+                    {% endif %}
+                </td>
+                <td><span class="badge badge-{{ t.status }}">{{ t.status | replace('_', ' ') }}</span></td>
+                <td><span class="badge badge-{{ t.priority }}">{{ t.priority }}</span></td>
+                <td><span class="badge badge-{{ t.category }}">{{ t.category | replace('_', ' ') | title }}</span></td>
+                <td>{{ t.requester_name }}</td>
+                <td style="color:#475569;font-size:0.8rem">
+                    {{ t.created_at.strftime('%b %d, %Y') if t.created_at else '—' }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% else %}
+<div class="table-wrapper">
+    <div class="empty-state">
+        <span class="icon">🎫</span>
+        <h3>No tickets found</h3>
+        <p>{% if status or priority or category %}Try clearing your filters.{% else %}Create your first ticket to get started.{% endif %}</p>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
