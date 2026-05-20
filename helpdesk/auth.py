@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, redirect, url_for
 from functools import wraps
 from db import get_db
 import bcrypt
@@ -61,7 +61,7 @@ def login():
 @auth.route('/api/auth/logout', methods=['POST'])
 def logout():
     session.clear()
-    return jsonify({"message": "Logged out"})
+    return redirect(url_for('views.login_page'))
 
 def login_required(f):
     @wraps(f)

@@ -213,11 +213,16 @@
 {% if session.user_id %}
 <nav>
     <a href="/dashboard" class="nav-brand">🎫 <span>HelpDesk</span></a>
-    <div class="nav-links">
-        <a href="/dashboard" {% if request.path == '/dashboard' %}class="active"{% endif %}>Dashboard</a>
-        <a href="/tickets"   {% if request.path == '/tickets' %}class="active"{% endif %}>Tickets</a>
-        <a href="/tickets/new" {% if request.path == '/tickets/new' %}class="active"{% endif %}>+ New Ticket</a>
-    </div>
+   <div class="nav-links">
+    {% if session.role != 'user' %}
+    <a href="/dashboard" {% if request.path == '/dashboard' %}class="active"{% endif %}>Dashboard</a>
+    {% endif %}
+    <a href="/tickets" {% if request.path == '/tickets' %}class="active"{% endif %}>Tickets</a>
+    <a href="/tickets/new" {% if request.path == '/tickets/new' %}class="active"{% endif %}>+ New Ticket</a>
+    {% if session.role == 'admin' %}
+    <a href="/admin/users" {% if request.path == '/admin/users' %}class="active"{% endif %}>Users</a>
+    {% endif %}
+</div>
     <div class="nav-right">
         <span class="nav-user">Logged in</span>
         <form method="POST" action="/api/auth/logout" style="margin:0">

@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block title %}New Ticket — HelpDesk{% endblock %}
+
+{% block content %}
+<style>
+    .form-card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 2rem;
+        max-width: 700px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .form-divider {
+        border: none;
+        border-top: 1px solid #334155;
+        margin: 1.5rem 0;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        margin-top: 1.5rem;
+    }
+
+    .security-fields {
+        background: #1a0a0a;
+        border: 1px solid #7f1d1d;
+        border-radius: 8px;
+        padding: 1.2rem;
+        margin-top: 0.5rem;
+        display: none;
+    }
+
+    .security-fields.visible { display: block; }
+
+    .security-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #f87171;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+</style>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">New Ticket</h1>
+        <p class="page-subtitle">Submit a new support request</p>
+    </div>
+    <a href="/tickets" class="btn btn-ghost">← Back to Tickets</a>
+</div>
+
+<div class="form-card">
+    <div id="error-msg" style="display:none;background:#3d0909;color:#f87171;border:1px solid #dc2626;border-radius:8px;padding:10px 14px;font-size:0.85rem;margin-bottom:1.2rem"></div>
+
+    <div class="form-group">
+        <label>Title</label>
+        <input type="text" id="title" placeholder="Brief summary of the issue" />
+    </div>
+
+    <div class="form-group">
+        <label>Description</label>
+        <textarea id="description" rows="4" placeholder="Describe the issue in detail — what happened, when, and any steps already taken..."></textarea>
+    </div>
+
+    <hr class="form-divider">
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>Priority</label>
+            <select id="priority">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Category</label>
+            <select id="category" onchange="toggleSecurityFields()">
+                <option value="hardware">Hardware</option>
+                <option value="software">Software</option>
+                <option value="network">Network</option>
+                <option value="security_incident">Security Incident</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Security incident extra fields -->
+    <div class="security-fields" id="security-fields">
+        <p class="security-label">⚠ Security Incident Details</p>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Severity</label>
+                <select id="severity">
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Escalate Immediately?</label>
+                <select id="escalate">
+                    <option value="false">No</option>
+                    <option value="true">Yes — escalate now</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button class="btn btn-primary" onclick="submitTicket()">Submit Ticket</button>
+        <a href="/tickets" class="btn btn-ghost">Cancel</a>
+    </div>
+</div>
+
+<script>
+function toggleSecurityFields() {
+    const cat = document.getElementById('category').value;
+    const fields = document.getElementById('security-fields');
+    if (cat === 'security_incident') {
+        fields.classList.add('visible');
+    } else {
+        fields.classList.remove('visible');
+    }
+}
+
+async function submitTicket() {
+    const title       = document.getElementById('title').value.trim();
+    const description = document.getElementById('description').value.trim();
+    const priority    = document.getElementById('priority').value;
+    const category    = document.getElementById('category').value;
+    const errorEl     = document.getElementById('error-msg');
+
+    if (!title || !description) {
+        errorEl.textContent = 'Title and description are required.';
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    const res = await fetch('/api/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description, priority, category })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+        // If security incident and escalate is yes, escalate immediately
+        if (category === 'security_incident') {
+            const escalate = document.getElementById('escalate').value;
+            const severity = document.getElementById('severity').value;
+            if (escalate === 'true') {
+                await fetch(`/api/tickets/${data.id}/escalate`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ severity })
+                });
+            }
+        }
+        window.location.href = `/tickets/${data.id}`;
+    } else {
+        errorEl.textContent = data.error || 'Failed to create ticket.';
+        errorEl.style.display = 'block';
+    }
+}
+</script>
+{% endblock %}

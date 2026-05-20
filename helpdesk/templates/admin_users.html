@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}User Management — HelpDesk{% endblock %}
+
+{% block content %}
+<style>
+    .user-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .user-table th {
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        padding: 10px 16px;
+        border-bottom: 1px solid #334155;
+        background: #1e293b;
+    }
+
+    .user-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid #1e293b;
+        font-size: 0.875rem;
+        color: #cbd5e1;
+        background: #162032;
+    }
+
+    .user-table tr:last-child td { border-bottom: none; }
+
+    .table-wrapper {
+        background: #162032;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .role-select {
+        background: #0f172a;
+        border: 1px solid #334155;
+        border-radius: 6px;
+        padding: 4px 8px;
+        color: #e2e8f0;
+        font-size: 0.8rem;
+        cursor: pointer;
+    }
+
+    .badge-admin      { background: #3b0764; color: #e879f9; }
+    .badge-technician { background: #0c4a6e; color: #38bdf8; }
+    .badge-user       { background: #1e293b; color: #64748b; border: 1px solid #334155; }
+</style>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">User Management</h1>
+        <p class="page-subtitle">Manage roles and access for all users</p>
+    </div>
+    <a href="/register" class="btn btn-primary">+ Add User</a>
+</div>
+
+<div class="table-wrapper">
+    <table class="user-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Joined</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td style="color:#475569;font-family:monospace">#{{ user.id }}</td>
+                <td style="color:#f1f5f9;font-weight:500">{{ user.name }}</td>
+                <td>{{ user.email }}</td>
+                <td><span class="badge badge-{{ user.role }}">{{ user.role }}</span></td>
+                <td style="color:#475569;font-size:0.8rem">
+                    {{ user.created_at.strftime('%b %d, %Y') if user.created_at else '—' }}
+                </td>
+                <td>
+                    <select class="role-select" onchange="updateRole({{ user.id }}, this.value)">
+                        <option value="user"       {% if user.role == 'user' %}selected{% endif %}>User</option>
+                        <option value="technician" {% if user.role == 'technician' %}selected{% endif %}>Technician</option>
+                        <option value="admin"      {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                    </select>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+async function updateRole(userId, newRole) {
+    const res = await fetch(`/api/users/${userId}/role`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: newRole })
+    });
+    if (!res.ok) alert('Failed to update role.');
+}
+</script>
+{% endblock %}

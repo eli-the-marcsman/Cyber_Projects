@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+{% block title %}Ticket #{{ ticket.id }} — HelpDesk{% endblock %}
+
+{% block content %}
+<style>
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 1.5rem;
+        align-items: start;
+    }
+
+    .detail-main { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    .detail-card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
+    .detail-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #f1f5f9;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .detail-meta {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 1.2rem;
+    }
+
+    .detail-description {
+        font-size: 0.9rem;
+        color: #94a3b8;
+        line-height: 1.7;
+        white-space: pre-wrap;
+    }
+
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+
+    .sidebar-card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 1.2rem;
+    }
+
+    .sidebar-title {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        margin-bottom: 1rem;
+    }
+
+    .meta-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+        border-bottom: 1px solid #0f172a;
+        font-size: 0.85rem;
+    }
+
+    .meta-row:last-child { border-bottom: none; }
+    .meta-key   { color: #64748b; }
+    .meta-value { color: #e2e8f0; font-weight: 500; text-align: right; }
+
+    /* Activity log */
+    .activity-list { display: flex; flex-direction: column; gap: 0; }
+
+    .activity-item {
+        display: flex;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid #0f172a;
+        position: relative;
+    }
+
+    .activity-item:last-child { border-bottom: none; }
+
+    .activity-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #334155;
+        flex-shrink: 0;
+        margin-top: 5px;
+    }
+
+    .activity-dot.created    { background: #0ea5e9; }
+    .activity-dot.status     { background: #f59e0b; }
+    .activity-dot.assigned   { background: #a78bfa; }
+    .activity-dot.escalated  { background: #f87171; }
+
+    .activity-content { flex: 1; }
+
+    .activity-text {
+        font-size: 0.85rem;
+        color: #cbd5e1;
+        line-height: 1.5;
+    }
+
+    .activity-time {
+        font-size: 0.75rem;
+        color: #475569;
+        margin-top: 2px;
+    }
+
+    .activity-note {
+        font-size: 0.8rem;
+        color: #64748b;
+        font-style: italic;
+        margin-top: 4px;
+        padding: 4px 8px;
+        background: #0f172a;
+        border-radius: 4px;
+        border-left: 2px solid #334155;
+    }
+
+    /* Status change form */
+    .action-form {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .action-form select,
+    .action-form textarea,
+    .action-form input {
+        font-size: 0.85rem;
+        padding: 8px 10px;
+    }
+
+    .action-form textarea { min-height: 60px; resize: vertical; }
+
+    .escalated-banner {
+        background: #3d0909;
+        border: 1px solid #dc2626;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 0.85rem;
+        color: #f87171;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Ticket #{{ ticket.id }}</h1>
+        <p class="page-subtitle">
+            Opened by {{ ticket.requester_name }}
+            {% if ticket.created_at %}
+                · {{ ticket.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+            {% endif %}
+        </p>
+    </div>
+    <a href="/tickets" class="btn btn-ghost">← Back to Tickets</a>
+</div>
+
+{% if ticket.escalated %}
+<div class="escalated-banner">
+    ⚠ This ticket has been escalated
+    {% if ticket.severity %} — Severity: <strong>{{ ticket.severity | upper }}</strong>{% endif %}
+</div>
+{% endif %}
+
+<div class="detail-grid">
+
+    <!-- Left: main content -->
+    <div class="detail-main">
+
+        <!-- Ticket details -->
+        <div class="detail-card">
+            <h2 class="detail-title">
+                {{ ticket.title }}
+            </h2>
+            <div class="detail-meta">
+                <span class="badge badge-{{ ticket.status }}">{{ ticket.status | replace('_',' ') }}</span>
+                <span class="badge badge-{{ ticket.priority }}">{{ ticket.priority }}</span>
+                <span class="badge badge-{{ ticket.category }}">{{ ticket.category | replace('_',' ') | title }}</span>
+            </div>
+            <p class="detail-description">{{ ticket.description }}</p>
+        </div>
+
+        <!-- Activity log -->
+        <div class="detail-card">
+            <p class="sidebar-title">Activity Log</p>
+            {% if activity %}
+            <div class="activity-list">
+                {% for entry in activity %}
+                <div class="activity-item">
+                    <div class="activity-dot
+                        {% if entry.action == 'created' %}created
+                        {% elif entry.action == 'status_changed' %}status
+                        {% elif entry.action == 'assigned' %}assigned
+                        {% elif entry.action == 'escalated' %}escalated
+                        {% endif %}">
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-text">
+                            <strong>{{ entry.actor_name }}</strong>
+                            {% if entry.action == 'created' %}
+                                created this ticket
+                            {% elif entry.action == 'status_changed' %}
+                                changed status from
+                                <span class="badge badge-{{ entry.old_value }}" style="font-size:0.7rem">{{ entry.old_value | replace('_',' ') }}</span>
+                                to
+                                <span class="badge badge-{{ entry.new_value }}" style="font-size:0.7rem">{{ entry.new_value | replace('_',' ') }}</span>
+                            {% elif entry.action == 'assigned' %}
+                                assigned this ticket to technician #{{ entry.new_value }}
+                            {% elif entry.action == 'escalated' %}
+                                escalated this ticket
+                            {% else %}
+                                {{ entry.action | replace('_',' ') }}
+                            {% endif %}
+                        </p>
+                        {% if entry.note %}
+                        <p class="activity-note">{{ entry.note }}</p>
+                        {% endif %}
+                        <p class="activity-time">
+                            {% if entry.created_at %}
+                                {{ entry.created_at.strftime('%b %d, %Y at %I:%M %p') }}
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="color:#475569;font-size:0.85rem">No activity yet.</p>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- Right: sidebar -->
+    <div class="sidebar">
+
+        <!-- Ticket metadata -->
+        <div class="sidebar-card">
+            <p class="sidebar-title">Details</p>
+            <div class="meta-row">
+                <span class="meta-key">Status</span>
+                <span class="meta-value"><span class="badge badge-{{ ticket.status }}">{{ ticket.status | replace('_',' ') }}</span></span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-key">Priority</span>
+                <span class="meta-value"><span class="badge badge-{{ ticket.priority }}">{{ ticket.priority }}</span></span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-key">Category</span>
+                <span class="meta-value">{{ ticket.category | replace('_',' ') | title }}</span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-key">Requester</span>
+                <span class="meta-value">{{ ticket.requester_name }}</span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-key">Assignee</span>
+                <span class="meta-value">{{ ticket.assignee_name or 'Unassigned' }}</span>
+            </div>
+            {% if ticket.resolved_at %}
+            <div class="meta-row">
+                <span class="meta-key">Resolved</span>
+                <span class="meta-value" style="font-size:0.75rem">
+                    {{ ticket.resolved_at.strftime('%b %d, %Y') }}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Update status — admin and technician only -->
+        {% if role in ['admin', 'technician'] %}
+        <div class="sidebar-card">
+            <p class="sidebar-title">Update Status</p>
+            <div class="action-form">
+                <select id="new-status">
+                    <option value="open"        {% if ticket.status == 'open' %}selected{% endif %}>Open</option>
+                    <option value="in_progress" {% if ticket.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                    <option value="resolved"    {% if ticket.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                    <option value="closed"      {% if ticket.status == 'closed' %}selected{% endif %}>Closed</option>
+                </select>
+                <textarea id="status-note" placeholder="Add a note (optional)..."></textarea>
+                <button class="btn btn-primary" onclick="updateStatus()">Update Status</button>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Assign ticket — admin only -->
+        {% if role == 'admin' %}
+        <div class="sidebar-card">
+            <p class="sidebar-title">Assign Technician</p>
+            <div class="action-form">
+                <select id="assignee">
+                    <option value="">— Select technician —</option>
+                    {% for tech in technicians %}
+                    <option value="{{ tech.id }}"
+                        {% if ticket.assignee_id == tech.id %}selected{% endif %}>
+                        {{ tech.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <button class="btn btn-success" onclick="assignTicket()">Assign</button>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Escalate — admin and technician only -->
+        {% if role in ['admin', 'technician'] and ticket.category == 'security_incident' and not ticket.escalated %}
+        <div class="sidebar-card" style="border-color:#7f1d1d">
+            <p class="sidebar-title" style="color:#f87171">Escalate Incident</p>
+            <div class="action-form">
+                <select id="escalate-severity">
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                </select>
+                <button class="btn btn-danger" onclick="escalateTicket()">⚠ Escalate</button>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- User read-only notice -->
+        {% if role == 'user' %}
+        <div class="sidebar-card">
+            <p class="sidebar-title">Status</p>
+            <p style="font-size:0.85rem;color:#64748b">
+                Your ticket is being reviewed. You will be notified when it is updated.
+            </p>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+<script>
+const ticketId = {{ ticket.id }};
+
+async function updateStatus() {
+    const status = document.getElementById('new-status').value;
+    const note   = document.getElementById('status-note').value;
+    const res = await fetch(`/api/tickets/${ticketId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, note })
+    });
+    if (res.ok) window.location.reload();
+    else alert('Failed to update status.');
+}
+
+async function assignTicket() {
+    const assignee_id = document.getElementById('assignee').value;
+    if (!assignee_id) { alert('Please select a technician.'); return; }
+    const res = await fetch(`/api/tickets/${ticketId}/assign`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assignee_id: parseInt(assignee_id) })
+    });
+    if (res.ok) window.location.reload();
+    else alert('Failed to assign ticket.');
+}
+
+async function escalateTicket() {
+    const severity = document.getElementById('escalate-severity').value;
+    const res = await fetch(`/api/tickets/${ticketId}/escalate`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ severity })
+    });
+    if (res.ok) window.location.reload();
+    else alert('Failed to escalate ticket.');
+}
+</script>
+{% endblock %}
