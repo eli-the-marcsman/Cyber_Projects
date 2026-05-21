@@ -107,3 +107,74 @@ def escalate_ticket(id):
     log_activity(cur, id, session['user_id'], 'escalated', 'false', 'true')
     db.commit()
     return jsonify({"escalated": True})
+
+@tickets_bp.route('/api/tickets/<int:id>/resolve', methods=['POST'])
+@login_required
+def resolve_with_report(id):
+    data = request.json
+
+    required = ['reported_by', 'root_cause', 'why_it_happened', 'location', 'resolution']
+    for field in required:
+        if not data.get(field):
+            return jsonify({"error": f"{field} is required"}), 400
+
+    db  = get_db()
+    cur = db.cursor(dictionary=True)
+
+    # Check ticket exists
+    cur.execute("SELECT status FROM tickets WHERE id = %s", (id,))
+    ticket = cur.fetchone()
+    if not ticket:
+        return jsonify({"error": "Ticket not found"}), 404
+
+    # Update ticket status to resolved
+    cur.execute(
+        "UPDATE tickets SET status='resolved', resolved_at=NOW() WHERE id=%s", (id,)
+    )
+
+    # Write incident report
+    cur.execute("""
+        INSERT INTO incident_reports
+            (ticket_id, reported_by, root_cause, why_it_happened, location, resolution, resolved_by)
+        VALUES (%s,%s,%s,%s,%s,%s,%s)
+        ON DUPLICATE KEY UPDATE
+            reported_by=VALUES(reported_by),
+            root_cause=VALUES(root_cause),
+            why_it_happened=VALUES(why_it_happened),
+            location=VALUES(location),
+            resolution=VALUES(resolution),
+            resolved_by=VALUES(resolved_by),
+            created_at=NOW()
+    """, (
+        id,
+        data['reported_by'],
+        data['root_cause'],
+        data['why_it_happened'],
+        data['location'],
+        data['resolution'],
+        session['user_id']
+    ))
+
+    # Log the activity
+    log_activity(cur, id, session['user_id'], 'status_changed',
+                 ticket['status'], 'resolved',
+                 f"Resolved by {data['reported_by']} — {data['resolution'][:80]}")
+
+    db.commit()
+    return jsonify({"message": "Ticket resolved with incident report"}), 200
+
+@tickets_bp.route('/api/tickets/<int:id>/report', methods=['GET'])
+@login_required
+def get_report(id):
+    db  = get_db()
+    cur = db.cursor(dictionary=True)
+    cur.execute("""
+        SELECT ir.*, u.name as resolver_name
+        FROM incident_reports ir
+        JOIN users u ON ir.resolved_by = u.id
+        WHERE ir.ticket_id = %s
+    """, (id,))
+    report = cur.fetchone()
+    if not report:
+        return jsonify({"error": "No report found"}), 404
+    return jsonify(report)

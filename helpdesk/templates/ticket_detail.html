@@ -245,6 +245,50 @@
         </div>
 
     </div>
+    <!-- Incident report display -->
+{% if report %}
+<div class="detail-card" style="border-color:#16a34a">
+    <p class="sidebar-title" style="color:#4ade80;margin-bottom:1.2rem">
+        📋 Incident Report
+    </p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+        <div>
+            <p style="font-size:0.75rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Reported By</p>
+            <p style="color:#e2e8f0;font-size:0.9rem">{{ report.reported_by }}</p>
+        </div>
+        <div>
+            <p style="font-size:0.75rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Location</p>
+            <p style="color:#e2e8f0;font-size:0.9rem">{{ report.location }}</p>
+        </div>
+        <div>
+            <p style="font-size:0.75rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Resolved By</p>
+            <p style="color:#e2e8f0;font-size:0.9rem">{{ report.resolver_name }}</p>
+        </div>
+        <div>
+            <p style="font-size:0.75rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Date Resolved</p>
+            <p style="color:#e2e8f0;font-size:0.9rem">
+                {{ report.created_at.strftime('%b %d, %Y at %I:%M %p') if report.created_at else '—' }}
+            </p>
+        </div>
+    </div>
+
+    <div style="margin-bottom:1rem">
+        <p style="font-size:0.75rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Root Cause</p>
+        <p style="color:#cbd5e1;font-size:0.9rem;line-height:1.6;background:#0f172a;padding:10px 14px;border-radius:8px">{{ report.root_cause }}</p>
+    </div>
+
+    <div style="margin-bottom:1rem">
+        <p style="font-size:0.75rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Why It Happened</p>
+        <p style="color:#cbd5e1;font-size:0.9rem;line-height:1.6;background:#0f172a;padding:10px 14px;border-radius:8px">{{ report.why_it_happened }}</p>
+    </div>
+
+    <div>
+        <p style="font-size:0.75rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">How It Was Resolved</p>
+        <p style="color:#cbd5e1;font-size:0.9rem;line-height:1.6;background:#0f172a;padding:10px 14px;border-radius:8px">{{ report.resolution }}</p>
+    </div>
+</div>
+{% endif %}
 
     <!-- Right: sidebar -->
     <div class="sidebar">
@@ -284,20 +328,58 @@
 
         <!-- Update status — admin and technician only -->
         {% if role in ['admin', 'technician'] %}
-        <div class="sidebar-card">
-            <p class="sidebar-title">Update Status</p>
-            <div class="action-form">
-                <select id="new-status">
-                    <option value="open"        {% if ticket.status == 'open' %}selected{% endif %}>Open</option>
-                    <option value="in_progress" {% if ticket.status == 'in_progress' %}selected{% endif %}>In Progress</option>
-                    <option value="resolved"    {% if ticket.status == 'resolved' %}selected{% endif %}>Resolved</option>
-                    <option value="closed"      {% if ticket.status == 'closed' %}selected{% endif %}>Closed</option>
-                </select>
-                <textarea id="status-note" placeholder="Add a note (optional)..."></textarea>
-                <button class="btn btn-primary" onclick="updateStatus()">Update Status</button>
-            </div>
+<div class="sidebar-card">
+    <p class="sidebar-title">Update Status</p>
+    <div class="action-form">
+        <select id="new-status" onchange="toggleResolveForm()">
+            <option value="open"        {% if ticket.status == 'open' %}selected{% endif %}>Open</option>
+            <option value="in_progress" {% if ticket.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+            <option value="resolved"    {% if ticket.status == 'resolved' %}selected{% endif %}>Resolved</option>
+            <option value="closed"      {% if ticket.status == 'closed' %}selected{% endif %}>Closed</option>
+        </select>
+        <textarea id="status-note" placeholder="Add a note (optional)..."></textarea>
+        <button class="btn btn-primary" id="update-btn" onclick="updateStatus()">Update Status</button>
+    </div>
+</div>
+
+<!-- Incident report form — shows when resolved or closed is selected -->
+<div class="sidebar-card" id="incident-report-card" style="display:none;border-color:#16a34a">
+    <p class="sidebar-title" style="color:#4ade80">📋 Incident Report</p>
+    <div class="action-form">
+        <div style="margin-bottom:8px">
+            <label style="font-size:0.75rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em">
+                Reported By
+            </label>
+            <input type="text" id="reported-by" placeholder="Name of person who reported it" />
         </div>
-        {% endif %}
+        <div style="margin-bottom:8px">
+            <label style="font-size:0.75rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em">
+                Where did it happen?
+            </label>
+            <input type="text" id="location" placeholder="e.g. Lab 3, Floor 2, Workstation 14" />
+        </div>
+        <div style="margin-bottom:8px">
+            <label style="font-size:0.75rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em">
+                Root Cause
+            </label>
+            <textarea id="root-cause" placeholder="What caused the incident?"></textarea>
+        </div>
+        <div style="margin-bottom:8px">
+            <label style="font-size:0.75rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em">
+                Why did it happen?
+            </label>
+            <textarea id="why-happened" placeholder="Underlying reason — hardware failure, user error, config issue..."></textarea>
+        </div>
+        <div style="margin-bottom:8px">
+            <label style="font-size:0.75rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em">
+                How was it resolved?
+            </label>
+            <textarea id="resolution" placeholder="Steps taken to fix the issue..."></textarea>
+        </div>
+        <button class="btn btn-success" onclick="resolveWithReport()">✓ Submit & Resolve</button>
+    </div>
+</div>
+{% endif %}
 
         <!-- Assign ticket — admin only -->
         {% if role == 'admin' %}
@@ -350,6 +432,19 @@
 <script>
 const ticketId = {{ ticket.id }};
 
+function toggleResolveForm() {
+    const status = document.getElementById('new-status').value;
+    const reportCard = document.getElementById('incident-report-card');
+    const updateBtn  = document.getElementById('update-btn');
+    if (status === 'resolved' || status === 'closed') {
+        reportCard.style.display = 'block';
+        updateBtn.style.display  = 'none';
+    } else {
+        reportCard.style.display = 'none';
+        updateBtn.style.display  = 'block';
+    }
+}
+
 async function updateStatus() {
     const status = document.getElementById('new-status').value;
     const note   = document.getElementById('status-note').value;
@@ -360,6 +455,37 @@ async function updateStatus() {
     });
     if (res.ok) window.location.reload();
     else alert('Failed to update status.');
+}
+
+async function resolveWithReport() {
+    const reported_by    = document.getElementById('reported-by').value.trim();
+    const location       = document.getElementById('location').value.trim();
+    const root_cause     = document.getElementById('root-cause').value.trim();
+    const why_it_happened= document.getElementById('why-happened').value.trim();
+    const resolution     = document.getElementById('resolution').value.trim();
+
+    if (!reported_by || !location || !root_cause || !why_it_happened || !resolution) {
+        alert('All incident report fields are required.');
+        return;
+    }
+
+    const res = await fetch(`/api/tickets/${ticketId}/resolve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            reported_by,
+            location,
+            root_cause,
+            why_it_happened,
+            resolution
+        })
+    });
+
+    if (res.ok) window.location.reload();
+    else {
+        const data = await res.json();
+        alert(data.error || 'Failed to submit report.');
+    }
 }
 
 async function assignTicket() {

@@ -180,11 +180,22 @@ def ticket_detail_page(id):
         cur.execute("SELECT id, name FROM users WHERE role='technician' OR role='admin'")
         technicians = cur.fetchall()
 
+    report = None
+    if ticket['status'] in ('resolved', 'closed'):
+        cur.execute("""
+            SELECT ir.*, u.name as resolver_name
+            FROM incident_reports ir
+            JOIN users u ON ir.resolved_by = u.id
+            WHERE ir.ticket_id = %s
+        """, (id,))
+        report = cur.fetchone()
+
     return render_template('ticket_detail.html',
         ticket=ticket,
         activity=activity,
         technicians=technicians,
-        role=role
+        role=role,
+        report=report 
     )
 
 # ── Admin panel ───────────────────────────────────────────────────────────────
@@ -197,3 +208,4 @@ def admin_users():
     cur.execute("SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC")
     users = cur.fetchall()
     return render_template('admin_users.html', users=users, role='admin')
+
