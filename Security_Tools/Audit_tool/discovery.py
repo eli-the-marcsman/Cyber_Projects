@@ -93,7 +93,7 @@ def main() -> list:
     parser.add_argument("--timeout", "-t", type=int, default=1)
     args = parser.parse_args()
 
-    subnet = args.subnet if args.subnet else get_local_subnet()
+    subnet = args.subnet if args.subnet else "10.0.0.0/24"
 
     print(f"\n{'─'*50}")
     print(" Network Security Audit Tool — Device Discovery")
