@@ -1,0 +1,219 @@
+{
+    "timestamp": "2026-05-27 16:18:16",
+    "subnet": "10.0.0.0/24",
+    "total_devices": 5,
+    "total_open_ports": 8,
+    "high_risk_findings": [],
+    "devices": [
+        {
+            "ip": "10.0.0.40",
+            "mac": "N/A",
+            "hostname": "unknown",
+            "ports": {
+                "21": {
+                    "status": "closed",
+                    "service": "FTP",
+                    "risk": "High"
+                },
+                "22": {
+                    "status": "closed",
+                    "service": "SSH",
+                    "risk": "Medium"
+                },
+                "23": {
+                    "status": "closed",
+                    "service": "Telnet",
+                    "risk": "Critical"
+                },
+                "80": {
+                    "status": "open",
+                    "service": "HTTP",
+                    "risk": "Low"
+                },
+                "443": {
+                    "status": "closed",
+                    "service": "HTTPS",
+                    "risk": "Low"
+                },
+                "445": {
+                    "status": "closed",
+                    "service": "SMB",
+                    "risk": "Critical"
+                },
+                "3389": {
+                    "status": "closed",
+                    "service": "RDP",
+                    "risk": "High"
+                }
+            }
+        },
+        {
+            "ip": "10.0.0.167",
+            "mac": "N/A",
+            "hostname": "unknown",
+            "ports": {
+                "21": {
+                    "status": "closed",
+                    "service": "FTP",
+                    "risk": "High"
+                },
+                "22": {
+                    "status": "closed",
+                    "service": "SSH",
+                    "risk": "Medium"
+                },
+                "23": {
+                    "status": "closed",
+                    "service": "Telnet",
+                    "risk": "Critical"
+                },
+                "80": {
+                    "status": "open",
+                    "service": "HTTP",
+                    "risk": "Low"
+                },
+                "443": {
+                    "status": "closed",
+                    "service": "HTTPS",
+                    "risk": "Low"
+                },
+                "445": {
+                    "status": "closed",
+                    "service": "SMB",
+                    "risk": "Critical"
+                },
+                "3389": {
+                    "status": "closed",
+                    "service": "RDP",
+                    "risk": "High"
+                }
+            }
+        },
+        {
+            "ip": "10.0.0.88",
+            "mac": "N/A",
+            "hostname": "unknown",
+            "ports": {
+                "21": {
+                    "status": "closed",
+                    "service": "FTP",
+                    "risk": "High"
+                },
+                "22": {
+                    "status": "closed",
+                    "service": "SSH",
+                    "risk": "Medium"
+                },
+                "23": {
+                    "status": "closed",
+                    "service": "Telnet",
+                    "risk": "Critical"
+                },
+                "80": {
+                    "status": "open",
+                    "service": "HTTP",
+                    "risk": "Low"
+                },
+                "443": {
+                    "status": "open",
+                    "service": "HTTPS",
+                    "risk": "Low"
+                },
+                "445": {
+                    "status": "closed",
+                    "service": "SMB",
+                    "risk": "Critical"
+                },
+                "3389": {
+                    "status": "closed",
+                    "service": "RDP",
+                    "risk": "High"
+                }
+            }
+        },
+        {
+            "ip": "10.0.0.226",
+            "mac": "N/A",
+            "hostname": "unknown",
+            "ports": {
+                "21": {
+                    "status": "closed",
+                    "service": "FTP",
+                    "risk": "High"
+                },
+                "22": {
+                    "status": "closed",
+                    "service": "SSH",
+                    "risk": "Medium"
+                },
+                "23": {
+                    "status": "closed",
+                    "service": "Telnet",
+                    "risk": "Critical"
+                },
+                "80": {
+                    "status": "open",
+                    "service": "HTTP",
+                    "risk": "Low"
+                },
+                "443": {
+                    "status": "open",
+                    "service": "HTTPS",
+                    "risk": "Low"
+                },
+                "445": {
+                    "status": "closed",
+                    "service": "SMB",
+                    "risk": "Critical"
+                },
+                "3389": {
+                    "status": "closed",
+                    "service": "RDP",
+                    "risk": "High"
+                }
+            }
+        },
+        {
+            "ip": "10.0.0.1",
+            "mac": "N/A",
+            "hostname": "unknown",
+            "ports": {
+                "21": {
+                    "status": "closed",
+                    "service": "FTP",
+                    "risk": "High"
+                },
+                "22": {
+                    "status": "filtered",
+                    "service": "SSH",
+                    "risk": "Medium"
+                },
+                "23": {
+                    "status": "filtered",
+                    "service": "Telnet",
+                    "risk": "Critical"
+                },
+                "80": {
+                    "status": "open",
+                    "service": "HTTP",
+                    "risk": "Low"
+                },
+                "443": {
+                    "status": "open",
+                    "service": "HTTPS",
+                    "risk": "Low"
+                },
+                "445": {
+                    "status": "filtered",
+                    "service": "SMB",
+                    "risk": "Critical"
+                },
+                "3389": {
+                    "status": "closed",
+                    "service": "RDP",
+                    "risk": "High"
+                }
+            }
+        }
+    ]
+}

@@ -1,0 +1,8 @@
+{
+    "timestamp": "2026-05-27 16:09:52",
+    "subnet": "10.0.0.0/24",
+    "total_devices": 0,
+    "total_open_ports": 0,
+    "high_risk_findings": [],
+    "devices": []
+}
