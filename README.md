@@ -35,8 +35,7 @@ MITRE ATT&CK, NIST CSF, and CIS Controls.
 ---
 
 ## Certifications In Progress
-- [ ] CompTIA Security+
-- [ ] CompTIA CySA+
+- [ ] ISC2 Certified in Cybersecurity
 - [ ] SOC Analyst Learning Path
 
 ## Methodology 
